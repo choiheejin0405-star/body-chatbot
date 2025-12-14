@@ -29,7 +29,7 @@ if not api_key:
 # Gemini 설정 (가장 안정적인 모델 사용)
 try:
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
     st.error(f"설정 오류: {e}")
     st.stop()
