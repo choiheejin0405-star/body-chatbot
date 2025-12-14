@@ -1,8 +1,13 @@
 import streamlit as st
 import requests
 import os
-from dotenv import load_dotenv
 
+# 안전장치: dotenv가 있으면 쓰고, 없으면 무시한다 (에러 방지)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 # .env 파일에서 환경 변수 로드
 load_dotenv()
 
