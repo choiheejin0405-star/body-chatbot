@@ -87,9 +87,10 @@ except Exception as e:
             connected_name = f"{first_model.name} (자동 선택됨)"
 
     except Exception as e:
-        return None, str(e)
-
-    return selected_model, connected_name
+        # ⭕ 맞는 모양 (들여쓰기 주의!)
+        st.error(f"오류가 발생했습니다: {e}")
+        st.stop()
+        return selected_model, connected_name
 
 # 모델 불러오기 실행
 model, model_name = get_model()
