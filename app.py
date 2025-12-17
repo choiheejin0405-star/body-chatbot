@@ -4,67 +4,46 @@ import PyPDF2
 from docx import Document
 import os
 
-# 1. API 키 설정
+# 1. 화면 설정 (가장 먼저 와야 함)
+st.set_page_config(page_title="4.우리 몸의 구조와 기능", page_icon="🩺")
+
+# 2. API 키 설정
 try:
-    GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-except:
-    st.error("설정에서 API 키를 입력해주세요!")
+    # 깃허브 배포 시 st.secrets 사용, 로컬 테스트 시 환경변수 등 확인
+    if "GOOGLE_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    else:
+        st.error("설정에서 API 키를 입력해주세요!")
+        st.stop()
+except Exception as e:
+    st.error(f"API 키 설정 오류: {e}")
     st.stop()
 
-# 2. 화면 설정
-st.set_page_config(page_title="4.우리 몸의 구조와 기능", page_icon="🩺")
 st.title("4.우리 몸의 구조와 기능")
 st.caption("선생님과 함께 우리 몸에 대해 재미있게 알아보아요!")
 
-# 3. 모델 연결 (선생님 요청: 사용 가능한 모델 직접 탐색 방식 ⭐)
+# 3. 모델 연결 함수
 @st.cache_resource
 def get_model():
-    import streamlit as st
-import google.generativeai as genai
-
-# 페이지 설정 (혹시 있으면 유지, 없으면 생략 가능)
-st.set_page_config(page_title="내 챗봇", page_icon="🤖")
-
-# ----------------------------------------------------------
-# 👇 여기가 핵심입니다! 이 부분을 정확히 이렇게 넣어주세요.
-# ----------------------------------------------------------
-try:
-    # 깃허브에 올릴 때 비밀번호가 노출되지 않도록 비밀 금고(secrets)에서 가져옵니다.
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-except Exception as e:
-    # 로컬이나 설정이 없을 때를 대비한 안내 메시지 (선택 사항)
-    st.error("API 키 설정이 필요합니다. Streamlit Secrets를 확인해주세요.")
-# ----------------------------------------------------------
-
-# ... 이 아래부터는 기존 챗봇 코드 ...
-    
     selected_model = None
     connected_name = ""
     
     try:
-        # [핵심 기능] 내 계정에서 사용 가능한 모든 모델을 조회합니다.
-        # "generateContent" (대화 기능)를 지원하는 놈들만 추려냅니다.
         my_available_models = []
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
                 my_available_models.append(m)
 
-        # 사용 가능한 모델이 하나도 없다면?
         if not my_available_models:
-# ✅ 에러 메시지를 띄우고, 앱을 안전하게 멈추는 명령어입니다.
-          st.error("사용 가능한 모델을 찾을 수 없습니다.")
-          st.stop()
-        # [똑똑한 선택 전략]
-        # 조회된 목록(my_available_models) 중에서 가장 좋은 걸 순서대로 찾습니다.
+            return None, "사용 가능한 모델 없음"
         
-        # 1순위: 1.5 Flash (빠르고 최신)
+        # 모델 우선순위 선택 로직
         for m in my_available_models:
             if 'gemini-1.5-flash' in m.name:
                 selected_model = genai.GenerativeModel(m.name)
                 connected_name = m.name
                 break
         
-        # 1순위가 없으면 -> 2순위: 1.5 Pro (똑똑함)
         if selected_model is None:
             for m in my_available_models:
                 if 'gemini-1.5-pro' in m.name:
@@ -72,7 +51,6 @@ except Exception as e:
                     connected_name = m.name
                     break
         
-        # 2순위도 없으면 -> 3순위: 그냥 Gemini Pro
         if selected_model is None:
             for m in my_available_models:
                 if 'gemini-pro' in m.name:
@@ -80,16 +58,15 @@ except Exception as e:
                     connected_name = m.name
                     break
         
-        # 아무것도 매칭이 안 되면 -> 그냥 목록의 첫 번째 놈을 무조건 잡습니다. (뭐라도 연결!)
         if selected_model is None:
             first_model = my_available_models[0]
             selected_model = genai.GenerativeModel(first_model.name)
             connected_name = f"{first_model.name} (자동 선택됨)"
 
+        return selected_model, connected_name
+
     except Exception as e:
-        # ⭕ 맞는 모양 (들여쓰기 주의!)
-        st.error(f"오류가 발생했습니다: {e}")
-        st.stop()
+        return None, str(e)
        
 # 모델 불러오기 실행
 model, model_name = get_model()
@@ -98,8 +75,8 @@ if model is None:
     st.error(f"😭 모델 연결 실패: {model_name}\nAPI 키를 다시 확인하거나 잠시 후 시도해주세요.")
     st.stop()
 else:
-    # 성공하면 어떤 모델을 찾았는지 사이드바에 표시
-    st.sidebar.success(f"✅ 내 컴퓨터 맞춤 연결!\n모델명: {model_name}")
+    # ✅ 여기에 원하시는 코드를 넣었습니다!
+    st.sidebar.success(f"연결 성공! ({model_name})")
 
 # 4. 자료 자동 읽기 함수
 @st.cache_data(show_spinner=False)
@@ -140,7 +117,7 @@ def load_data():
         
     return combined_text
 
-# 5. 시스템 프롬프트 (교육 및 윤리 기능 완비)
+# 5. 시스템 프롬프트 및 대화 로직
 if "knowledge" not in st.session_state:
     with st.spinner("선생님이 자료를 챙겨오고 있어요... 📚"):
         st.session_state.knowledge = load_data()
@@ -166,7 +143,6 @@ system_prompt = f"""
 5. **질문 유도**: 설명이 끝난 후에는 "혹시 더 궁금한 게 있니?" 또는 관련된 흥미로운 질문을 던져 대화를 이어가세요.
 """
 
-# 6. 대화 처리
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "안녕! 반가워. 선생님이랑 우리 몸에 대해 재미있게 이야기 나눠볼까? 혹시 궁금한 점이 있니? 😊"}
