@@ -11,7 +11,9 @@ st.set_page_config(page_title="4.우리 몸의 구조와 기능", page_icon="�
 
 # 2. API 키 설정 
 # 목적: Google Gemini AI 모델을 사용하기 위한 인증 키를 설정함. 이때 학생이 키를 입력하는 것이 아니라 이미 키 입력이 완료된 상태에서 학생이 챗봇을 활용할 수 있도록 함.
-YOUR_API_KEY = "AIzaSyDdXoT68U4tQYOQutWqzBSlNM-AiMmowh8" 
+import os
+# 환경 변수에서 키를 가져오도록 변경 (안전한 방식)
+YOUR_API_KEY = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY") 
 
 if not YOUR_API_KEY or YOUR_API_KEY == "여기에_AIza로_시작하는_키를_붙여넣으세요":
     st.error("🚨 코드 12번째 줄에 API 키를 입력해주세요!")
