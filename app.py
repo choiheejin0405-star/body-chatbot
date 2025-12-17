@@ -51,8 +51,9 @@ except Exception as e:
 
         # 사용 가능한 모델이 하나도 없다면?
         if not my_available_models:
-            return None, "사용 가능한 모델을 찾을 수 없음"
-
+# ✅ 에러 메시지를 띄우고, 앱을 안전하게 멈추는 명령어입니다.
+st.error("사용 가능한 모델을 찾을 수 없습니다.")
+st.stop()
         # [똑똑한 선택 전략]
         # 조회된 목록(my_available_models) 중에서 가장 좋은 걸 순서대로 찾습니다.
         
