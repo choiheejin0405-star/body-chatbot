@@ -90,8 +90,7 @@ except Exception as e:
         # ⭕ 맞는 모양 (들여쓰기 주의!)
         st.error(f"오류가 발생했습니다: {e}")
         st.stop()
-        return selected_model, connected_name
-
+       
 # 모델 불러오기 실행
 model, model_name = get_model()
 
